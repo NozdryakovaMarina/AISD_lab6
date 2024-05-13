@@ -6,26 +6,35 @@
 using namespace graph;
 using namespace std;
 
-TEST(EdgeTests, Constructor) {
-	Edge<int> a(1, 2);
-	EXPECT_EQ(a.from, 1);
-	EXPECT_EQ(a.to, 2);
-	EXPECT_EQ(a.data, 0);
+TEST(GraphTest, VerticesTest) {
+	Graph<int> g;
+	g.add_vertices(6);
+	g.add_vertices(100);
+	g.add_vertices(57);
+	EXPECT_TRUE(g.has_vertices(6));
+	EXPECT_TRUE(g.has_vertices(100));
+	EXPECT_TRUE(g.has_vertices(57)); 
 }
 
-TEST(EdgeTests, Constructor2) {
-	Edge<int, int> a(1, 2, 7);
-	EXPECT_EQ(a.from, 1);
-	EXPECT_EQ(a.to, 2);
-	EXPECT_EQ(a.data, 7);
+TEST(GraphTest, VerticesTest2) {
+	Graph<int> g;
+	g.add_vertices(6);
+	g.add_vertices(100);
+	g.add_vertices(57); 
+	EXPECT_FALSE(g.has_vertices(-24));
+	EXPECT_FALSE(g.has_vertices(0));
+	EXPECT_FALSE(g.has_vertices(465));
 }
 
-TEST(EdgeTests, Print) {
-	Edge<int, int> a(6, 2, 12);
-	a.print();
-}
+TEST(GraphTest, VerticesTest3) {
+	Graph<int> g;
+	g.add_vertices(6);
+	g.add_vertices(100);
+	g.add_vertices(57);
 
-TEST(EdgeTests, Print2) {
-	Edge<int, int> a(6, 2);
-	a.print();
+	g.remove_vertex(100);
+	g.remove_vertex(6);
+	EXPECT_FALSE(g.has_vertices(6));
+	EXPECT_FALSE(g.has_vertices(100));
+	EXPECT_TRUE(g.has_vertices(57));
 }
