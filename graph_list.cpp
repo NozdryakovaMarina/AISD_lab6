@@ -10,7 +10,8 @@ namespace graph {
 
 	template<typename Vertex, typename Distance = double>
 	class Graph {
-	private:
+	public:
+
 		struct Edge {
 			Vertex _from;
 			Vertex _to;
@@ -28,14 +29,11 @@ namespace graph {
 				return _from == other._from && _to == other._to && _data == other._data;
 			}
 		};
-	
-		vector<Vertex> _vertices;
-		vector<Edge> _edge;
-	public:
-		Graph(): _vertices(vector<Vertex>()), _edge(vector<Edge>()){}
+
+		Graph() : _vertices(vector<Vertex>()), _edges(vector<Edge>()) {}
 
 		void print_edges() const { 
-			for (auto& e : _edge) {
+			for (auto& e : _edges) {
 				e.print();
 			}
 		}
@@ -51,9 +49,9 @@ namespace graph {
 		}
 
 		bool remove_edge(const Edge& e) {
-			auto ind = find(_edge.begin(), _edge.end(), e);
-			if (ind != _edge.end()) {
-				_edge.erase(ind);
+			auto ind = find(_edges.begin(), _edges.end(), e);
+			if (ind != _edges.end()) {
+				_edges.erase(ind);
 				return true;
 			}
 			return false;
@@ -65,9 +63,9 @@ namespace graph {
 			auto ind = find(_vertices.begin(), _vertices.end(), v);
 			if (ind != _vertices.end()) {
 				_vertices.erase(ind);
-				for (int i = 0; i < _edge.size(); i++) {
-					if (_edge[i]._from || _edge[i]._to)
-						remove_edge(_edge[i]);
+				for (int i = 0; i < _edges.size(); i++) {
+					if (_edges[i]._from || _edges[i]._to)
+						remove_edge(_edges[i]);
 					i--;
 				}
 				return true;
@@ -79,6 +77,29 @@ namespace graph {
 			return _vertices;
 		}
 
+		bool has_edge(const Vertex& from, const Vertex& to) const {
+			for (const auto& e: _edges) {
+				if (e._from == from && e._to == to) return true;
+			}
+			return false;
+		}
+
+		bool has_edge(const Edge& e) const {
+			for (const auto& edge : _edges) {
+				if (edge._from == e._from && edge._to == e._to && edge._data == e._data) return true;
+			}
+			return false;
+		}
+
+		void add_edge(const Vertex& from, const Vertex& to, const Distance& d) {
+			if (!has_vertices(from) || !has_vertices(to)) return;
+
+			Edge e(from, to, d);
+			if (!has_edge(e)) _edges.push_back(e);
+		}
+	private:
+		vector<Vertex> _vertices;
+		vector<Edge> _edges;
 	};
 
 }
