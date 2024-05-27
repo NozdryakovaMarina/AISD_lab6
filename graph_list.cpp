@@ -7,8 +7,9 @@
 #include <unordered_map>
 #include <stack>
 
-
 using namespace std;
+
+constexpr int INFIN = numeric_limits<int>::max();
 
 namespace graph {
 
@@ -155,6 +156,47 @@ namespace graph {
 					}
 				}
 			}
+		}
+
+		std::vector<Edge> shortest_path(const Vertex& from, const Vertex& to) const {
+			if (!has_vertices(from) || !has_vertices(to)) return {};
+
+			unordered_map<Vertex, Distance> distances;
+			unordered_map<Vertex, Vertex> prev;
+
+			for (const auto& vertex : _vertices) distances[vertex] = INFIN;
+			distances[from] = 0;
+			 
+			for (size_t i = 0; i < _vertices.size() - 1; ++i) {
+				for (const auto& edge : _edges) {
+					if (distances[edge._from] + edge._data < distances[edge._to]) {
+						distances[edge._to] = distances[edge._from] + edge._data;
+						prev[edge._to] = edge._from;
+					}
+				}
+			}
+
+			for (const auto& edge : _edges) {
+				if (distances[edge._from] + edge._data < distances[edge._to]) {
+					throw runtime_error("A negative cycle has been detected. It is impossible to find the shortest path(");
+				}
+			}
+
+			vector<Edge> path;
+			Vertex tmp = to;
+			while (tmp != from) {
+				for (const auto& edge : _edges) {
+					if (edge._to == tmp && prev[tmp] == edge._from) {
+						path.push_back(edge);
+						prev[tmp] = edge._from;
+						break;
+					}
+				}
+				tmp = prev[tmp];
+			}
+			reverse(path.begin(), path.end());
+
+			return path;
 		}
 
 	private:

@@ -128,18 +128,6 @@ TEST(GraphTest, WalkTest) {
 	g.add_edge(6, 100, 8);
 	g.add_edge(100, 222, 7);
 
-	/*Graph<int, int> graph;
-	graph.add_vertices(1);
-	graph.add_vertices(2);
-	graph.add_vertices(3);
-	graph.add_vertices(4);
-	graph.add_vertices(5);
-
-	graph.add_edge(1, 2, 5);
-	graph.add_edge(2, 4, 15);
-	graph.add_edge(2, 5, 1);
-	graph.add_edge(1, 3, 20);*/
-
 	auto action = [](int vertex) {
 		std::cout << "Visited vertex: " << vertex << std::endl;
 	};
@@ -207,4 +195,52 @@ TEST(GraphTest, DegreeTest) {
 	g.add_edge(1, 3, 20);
 
 	cout << g.degree(2) << endl;
+}
+
+TEST(GraphTest, DijkstraTest) {
+	Graph<int> g;
+
+	g.add_vertices(6);
+	g.add_vertices(100);
+	g.add_vertices(14);
+	g.add_vertices(57);
+	g.add_vertices(3);
+	g.add_vertices(222);
+	g.add_vertices(1);
+
+	g.add_edge(6, 14, 5);
+	g.add_edge(14, 3, 48);
+	g.add_edge(14, 57, 9);
+	g.add_edge(57, 1, 45);
+	g.add_edge(6, 100, 8);
+	g.add_edge(100, 222, 7);
+	g.add_edge(100, 3, 2);
+	g.add_edge(222, 57, 1);
+
+	auto path = g.shortest_path(6, 3);
+	cout << "Shortest path: " << endl;
+	for (const auto& edge : path) {
+		cout << edge._from << " -> " << edge._to << " -> |" << edge._data << "| " << endl;
+	}
+}
+
+TEST(GraphTest, DijkstraTest2) {
+	Graph<int, int> g;
+	g.add_vertices(1);
+	g.add_vertices(2);
+	g.add_vertices(3);
+	g.add_vertices(4);
+	g.add_vertices(5);
+
+	g.add_edge(1, 2, 5);
+	g.add_edge(2, 4, 15);
+	g.add_edge(2, 5, 1);
+	g.add_edge(1, 3, 20);
+	g.add_edge(5, 4, 2);
+
+	auto path = g.shortest_path(1, 4);
+	cout << "Shortest path: " << endl;
+	for (const auto& edge : path) {
+		cout << edge._from << " -> " << edge._to << "-> |" << edge._data << "| " << endl;
+	}
 }
