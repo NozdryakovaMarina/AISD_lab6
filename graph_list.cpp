@@ -3,6 +3,10 @@
 #include <iostream>
 #include <stdexcept> 
 #include <vector>
+#include <functional>
+#include <unordered_map>
+#include <stack>
+
 
 using namespace std;
 
@@ -17,7 +21,6 @@ namespace graph {
 			Vertex _to;
 			Distance _data;
 
-			Edge() : _from(Vertex()), _to(Vertex()), _data(0) {}
 			Edge(Vertex f, Vertex t) : _from(f), _to(t), _data(0) {}
 			Edge(Vertex f, Vertex t, Distance d) : _from(f), _to(t), _data(d) {}
 
@@ -49,9 +52,10 @@ namespace graph {
 		}
 
 		bool remove_edge(const Edge& e) {
-			auto ind = find(_edges.begin(), _edges.end(), e);
-			if (ind != _edges.end()) {
-				_edges.erase(ind);
+			if (!has_edge(e)) return false;
+			for (int i = 0; i < _edges.size(); i++) {
+				if (_edges[i]._from == e._from && _edges[i]._to == e._to && _edges[i]._data == e._data)
+					_edges.erase(_edges.begin() + i);
 				return true;
 			}
 			return false;
@@ -63,10 +67,9 @@ namespace graph {
 			auto ind = find(_vertices.begin(), _vertices.end(), v);
 			if (ind != _vertices.end()) {
 				_vertices.erase(ind);
-				for (int i = 0; i < _edges.size(); i++) {
-					if (_edges[i]._from || _edges[i]._to)
-						remove_edge(_edges[i]);
-					i--;
+				for (auto& vertex : _vertices) {
+					auto& edges = _edges;
+					edges.erase(remove_if(edges.begin(), edges.end(), [v](const Edge& e) {return e._to == v || e._from == v; }), edges.end());
 				}
 				return true;
 			}
@@ -97,6 +100,63 @@ namespace graph {
 			Edge e(from, to, d);
 			if (!has_edge(e)) _edges.push_back(e);
 		}
+
+		bool remove_edge(const Vertex& from, const Vertex& to) {
+			if (!has_edge(from, to)) return false;
+	
+			_edges.erase(remove_if(_edges.begin(), _edges.end(), [&](Edge& e) { return (e._from == from) && (e._to == to); }), _edges.end());
+
+            return false;
+		}
+
+		std::vector<Edge> edges(const Vertex& vertex) {
+			vector<Edge> result;
+			for (auto& edge : _edges) {
+				if (edge._from == vertex) {
+					result.push_back(edge);
+				}
+			}
+			return result;
+		}
+
+		size_t order() const {
+			return _vertices.size();
+		}
+
+		size_t degree(const Vertex& v) const {
+			size_t deg = 0;
+			for (auto& edge : _edges) {
+				if (edge._from == v) {
+					deg++;
+				}
+			}
+			return deg;
+		}
+
+		void walk(const Vertex& start_vertex, std::function<void(const Vertex&)> action) const {
+			if (!has_vertices(start_vertex))
+				throw std::invalid_argument("The vertex was not found");
+			unordered_map<Vertex, bool> visited;
+			unordered_map<Vertex, size_t> dist;
+			stack<Vertex> stack;
+			dist[start_vertex] = 0;
+			stack.push(start_vertex);
+			visited[start_vertex] = true;
+			action(start_vertex);
+			while (!stack.empty()) {
+				Vertex tmp = stack.top();
+				stack.pop();
+				for (const auto& edge : _edges) {
+					if (!visited[edge._to]) {
+						stack.push(edge._to);
+						visited[edge._to] = true;
+						dist[edge._to] = dist[tmp] + 1;
+						action(edge._to);
+					}
+				}
+			}
+		}
+
 	private:
 		vector<Vertex> _vertices;
 		vector<Edge> _edges;
