@@ -122,10 +122,10 @@ TEST(GraphTest, WalkTest) {
 	g.add_vertices(1);
 
 	g.add_edge(6, 14, 5);
+	g.add_edge(6, 100, 8);
 	g.add_edge(14, 3, 48);
 	g.add_edge(14, 57, 9);
 	g.add_edge(57, 1, 45);
-	g.add_edge(6, 100, 8);
 	g.add_edge(100, 222, 7);
 
 	auto action = [](int vertex) {
@@ -216,11 +216,11 @@ TEST(GraphTest, DijkstraTest) {
 	g.add_edge(100, 222, 7);
 	g.add_edge(100, 3, 2);
 	g.add_edge(222, 57, 1);
-
+	 
 	auto path = g.shortest_path(6, 3);
 	cout << "Shortest path: " << endl;
 	for (const auto& edge : path) {
-		cout << edge._from << " -> " << edge._to << " -> |" << edge._data << "| " << endl;
+		cout << edge._from << " -> " << edge._to << "-> |" << edge._data << "| " << endl;
 	}
 }
 
@@ -233,14 +233,105 @@ TEST(GraphTest, DijkstraTest2) {
 	g.add_vertices(5);
 
 	g.add_edge(1, 2, 5);
-	g.add_edge(2, 4, 15);
+	g.add_edge(2, 4, -15);
 	g.add_edge(2, 5, 1);
-	g.add_edge(1, 3, 20);
+	g.add_edge(1, 3, -20);
 	g.add_edge(5, 4, 2);
 
-	auto path = g.shortest_path(1, 4);
+	EXPECT_ANY_THROW(g.shortest_path(1, 4));
+}
+
+TEST(GraphTest, DistanceTest) {
+	Graph<int, int> g;
+
+	g.add_vertices(1);
+	g.add_vertices(2);
+	g.add_vertices(3);
+	g.add_vertices(4);
+	g.add_vertices(5);
+
+	g.add_edge(1, 2, 5);
+	g.add_edge(2, 4, 15);
+	g.add_edge(2, 5, 31);
+	g.add_edge(2, 1, 5);
+	g.add_edge(2, 3, 21);
+	g.add_edge(1, 3, 10);
+	g.add_edge(1, 4, 8);
+	g.add_edge(1, 5, 11);
+	g.add_edge(3, 1, 10);
+	g.add_edge(3, 2, 21);
+	g.add_edge(3, 4, 29);
+	g.add_edge(3, 5, 30);
+	g.add_edge(4, 1, 8);
+	g.add_edge(4, 2, 15);
+	g.add_edge(4, 3, 29);
+	g.add_edge(4, 5, 2);
+	g.add_edge(5, 1, 11);
+	g.add_edge(5, 2, 31);
+	g.add_edge(5, 3, 30);
+	g.add_edge(5, 4, 2);
+
+	auto path = g.shortest_path(4, 5);
 	cout << "Shortest path: " << endl;
 	for (const auto& edge : path) {
 		cout << edge._from << " -> " << edge._to << "-> |" << edge._data << "| " << endl;
 	}
+}
+
+TEST(GraphTest, NegativeTest) {
+
+	Graph<int, int> g;
+
+	g.add_vertices(1);
+	g.add_vertices(2);
+	g.add_vertices(3);
+
+	g.add_edge(1, 2, 5);
+	g.add_edge(2, 1, -5);
+	g.add_edge(2, 3, 21);
+	g.add_edge(1, 3, -10);
+	g.add_edge(3, 1, 10);
+	g.add_edge(3, 2, 21);
+
+	EXPECT_ANY_THROW(g.shortest_path(2, 3));
+}
+
+TEST(GraphTest, StringTest) {
+	Graph<string, int> g;
+
+	g.add_vertices("Dallas");
+	g.add_vertices("Washington");
+	g.add_vertices("New York");
+	g.add_vertices("Los Angeles");
+
+	g.add_edge("Dallas", "New York", 260);
+	g.add_edge("Dallas", "Los Angeles", 370);
+	g.add_edge("New York", "Washington", 40);
+	g.add_edge("Los Angeles", "New York", 1500);
+	g.add_edge("Los Angeles", "Washington", 10);
+	g.add_edge("Washington", "Dallas", 700);
+	g.add_edge("Washington", "Los Angeles", 100);
+
+	auto path = g.shortest_path("Dallas", "Washington");
+	cout << "Shortest path: " << endl;
+	for (const auto& edge : path) {
+		cout << edge._from << " -> " << edge._to << "-> |" << edge._data << "| " << endl;
+	}
+}
+
+TEST(GraphTest, CenterTest) {
+	Graph<int> g;
+
+	g.add_vertices(1);
+	g.add_vertices(2);
+	g.add_vertices(3);
+
+	g.add_edge(1, 2, 5);
+	g.add_edge(2, 1, 12);
+	g.add_edge(2, 3, 21);
+	g.add_edge(1, 3, 4);
+	g.add_edge(3, 1, 10);
+	g.add_edge(3, 2, 25);
+
+	EXPECT_EQ(g.find_center(), 1);
 }

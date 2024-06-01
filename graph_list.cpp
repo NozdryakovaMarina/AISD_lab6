@@ -5,11 +5,9 @@
 #include <vector>
 #include <functional>
 #include <unordered_map>
-#include <stack>
+#include <stack> 
 
-using namespace std;
-
-constexpr int INFIN = numeric_limits<int>::max();
+using namespace std; 
 
 namespace graph {
 
@@ -25,7 +23,7 @@ namespace graph {
 			Edge(Vertex f, Vertex t) : _from(f), _to(t), _data(0) {}
 			Edge(Vertex f, Vertex t, Distance d) : _from(f), _to(t), _data(d) {}
 
-			void print() {
+			void print() const{
 				cout << "From the vertex: " << _from << " | To the vertex: " << _to << " | Distance: " << _data << endl;
 			}
 
@@ -34,6 +32,11 @@ namespace graph {
 			}
 		};
 
+	private:
+		vector<Vertex> _vertices;
+		vector<Edge> _edges;
+
+	public:
 		Graph() : _vertices(vector<Vertex>()), _edges(vector<Edge>()) {}
 
 		void print_edges() const { 
@@ -67,11 +70,9 @@ namespace graph {
 
 			auto ind = find(_vertices.begin(), _vertices.end(), v);
 			if (ind != _vertices.end()) {
-				_vertices.erase(ind);
-				for (auto& vertex : _vertices) {
-					auto& edges = _edges;
-					edges.erase(remove_if(edges.begin(), edges.end(), [v](const Edge& e) {return e._to == v || e._from == v; }), edges.end());
-				}
+				_vertices.erase(ind); 
+				auto& edges = _edges;
+				edges.erase(remove_if(edges.begin(), edges.end(), [v](const Edge& e) {return e._to == v || e._from == v; }), edges.end());
 				return true;
 			}
 			return false;
@@ -110,7 +111,7 @@ namespace graph {
             return false;
 		}
 
-		std::vector<Edge> edges(const Vertex& vertex) {
+		vector<Edge> edges(const Vertex& vertex) {
 			vector<Edge> result;
 			for (auto& edge : _edges) {
 				if (edge._from == vertex) {
@@ -136,22 +137,26 @@ namespace graph {
 
 		void walk(const Vertex& start_vertex, std::function<void(const Vertex&)> action) const {
 			if (!has_vertices(start_vertex))
-				throw std::invalid_argument("The vertex was not found");
-			unordered_map<Vertex, bool> visited;
-			unordered_map<Vertex, size_t> dist;
-			stack<Vertex> stack;
-			dist[start_vertex] = 0;
+				throw std::invalid_argument("Vertex not found");
+
+			std::vector<Vertex> visited;
+			std::vector<size_t> dist(_vertices.size(), false);
+			std::stack<Vertex> stack;
+
+			dist[start_vertex] = true;
 			stack.push(start_vertex);
-			visited[start_vertex] = true;
 			action(start_vertex);
+			visited.push_back(start_vertex);
+
 			while (!stack.empty()) {
-				Vertex tmp = stack.top();
+				Vertex current = stack.top();
 				stack.pop();
 				for (const auto& edge : _edges) {
-					if (!visited[edge._to]) {
+					size_t index = std::find(_vertices.begin(), _vertices.end(), edge._to) - _vertices.begin();
+					if (std::find(visited.begin(), visited.end(), edge._to) == visited.end()) {
 						stack.push(edge._to);
-						visited[edge._to] = true;
-						dist[edge._to] = dist[tmp] + 1;
+						visited.push_back(edge._to);
+						dist[index] = dist[std::find(_vertices.begin(), _vertices.end(), current) - _vertices.begin()] + 1;
 						action(edge._to);
 					}
 				}
@@ -161,26 +166,26 @@ namespace graph {
 		std::vector<Edge> shortest_path(const Vertex& from, const Vertex& to) const {
 			if (!has_vertices(from) || !has_vertices(to)) return {};
 
-			unordered_map<Vertex, Distance> distances;
-			unordered_map<Vertex, Vertex> prev;
+			std::unordered_map<Vertex, Distance> distances;
+			std::unordered_map<Vertex, Vertex> prev;
 
-			for (const auto& vertex : _vertices) distances[vertex] = INFIN;
+			for (const auto& vertex : _vertices)
+				distances[vertex] = numeric_limits<Distance>::max();
 			distances[from] = 0;
-			 
-			for (size_t i = 0; i < _vertices.size() - 1; ++i) {
-				for (const auto& edge : _edges) {
-					if (distances[edge._from] + edge._data < distances[edge._to]) {
-						distances[edge._to] = distances[edge._from] + edge._data;
-						prev[edge._to] = edge._from;
-					}
+
+			for (const auto& edge : _edges) {
+				if (distances[edge._from] + edge._data < distances[edge._to]) {
+					distances[edge._to] = distances[edge._from] + edge._data;
+					prev[edge._to] = edge._from;
 				}
 			}
 
 			for (const auto& edge : _edges) {
-				if (distances[edge._from] + edge._data < distances[edge._to]) {
-					throw runtime_error("A negative cycle has been detected. It is impossible to find the shortest path(");
+				if (edge._data < 0) {
+					throw std::runtime_error("Negative weight detected");
 				}
 			}
+
 
 			vector<Edge> path;
 			Vertex tmp = to;
@@ -194,14 +199,36 @@ namespace graph {
 				}
 				tmp = prev[tmp];
 			}
-			reverse(path.begin(), path.end());
+			std::reverse(path.begin(), path.end());
 
 			return path;
 		}
 
-	private:
-		vector<Vertex> _vertices;
-		vector<Edge> _edges;
-	};
+		Vertex find_center() {
+			Vertex center;
+			Distance min_radius = numeric_limits<Distance>::max(); 
 
+			for (const auto& v : _vertices) {
+				Distance total_distance = 0;
+				for (const auto& other_v : _vertices) {
+					if (v != other_v) {
+						auto path = shortest_path(v, other_v);
+						Distance distance = 0;
+						if (!path.empty()) 
+						for (const auto& edge : path) {
+							distance += edge._data;
+						}
+						total_distance = std::max(total_distance, distance);
+					} 
+				}
+
+				if (total_distance < min_radius) {
+					min_radius = total_distance;
+					center = v;
+				}
+			}
+
+			return center;
+		}
+	};
 }
